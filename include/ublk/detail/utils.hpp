@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility>
+#include <vector>
 
 namespace ublk {
 namespace detail {
@@ -22,6 +23,10 @@ template <typename Func> auto defer(Func &&func) noexcept {
     };
     return Defer(std::forward<Func>(func));
 }
+
+template <typename T, typename Alloc>
+using AllocVector = std::vector<
+    T, typename std::allocator_traits<Alloc>::template rebind_alloc<T>>;
 
 } // namespace detail
 } // namespace ublk
