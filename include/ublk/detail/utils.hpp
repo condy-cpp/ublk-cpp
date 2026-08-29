@@ -1,3 +1,8 @@
+/**
+ * @file utils.hpp
+ * @brief Small utility helpers.
+ */
+
 #pragma once
 
 #include <utility>
@@ -32,6 +37,31 @@ template <typename T> inline T align_up(T value, T alignment) noexcept {
     // alignment must be a power of two
     assert(alignment > 0 && (alignment & (alignment - 1)) == 0);
     return (value + alignment - 1) & ~(alignment - 1);
+}
+
+template <typename T>
+concept is_pmr_allocator = requires(const T &a) {
+    { a.resource() } -> std::convertible_to<std::pmr::memory_resource *>;
+};
+
+template <typename Alloc>
+[[nodiscard]] inline void *alloc_aligned(const Alloc &alloc, size_t bytes,
+                                         size_t alignment) {
+    if constexpr (is_pmr_allocator<Alloc>) {
+        return alloc.resource()->allocate(bytes, alignment);
+    } else {
+        return ::operator new(bytes, std::align_val_t{alignment});
+    }
+}
+
+template <typename Alloc>
+inline void free_aligned(const Alloc &alloc, void *ptr, size_t bytes,
+                         size_t alignment) noexcept {
+    if constexpr (is_pmr_allocator<Alloc>) {
+        alloc.resource()->deallocate(ptr, bytes, alignment);
+    } else {
+        ::operator delete(ptr, bytes, std::align_val_t{alignment});
+    }
 }
 
 } // namespace detail
