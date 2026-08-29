@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 project(ublkcpp LANGUAGES CXX)
 
 option(UBLKCPP_BUILD_TESTS "Build tests" OFF)
+option(UBLKCPP_USE_URING_CMD128 "Use IORING_OP_URING_CMD128 for control commands" ON)
 
 include(FetchContent)
 
@@ -16,6 +17,9 @@ FetchContent_Declare(
 add_library(ublkcpp INTERFACE)
 target_include_directories(ublkcpp INTERFACE include)
 target_compile_features(ublkcpp INTERFACE cxx_std_23) # TODO: cxx_std_26
+if(UBLKCPP_USE_URING_CMD128)
+    target_compile_definitions(ublkcpp INTERFACE UBLKCPP_USE_URING_CMD128)
+endif()
 
 set(CONDY_ENABLE_STDEXEC ON)
 add_subdirectory(third_party/condy)
