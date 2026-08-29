@@ -4,6 +4,7 @@ project(ublkcpp LANGUAGES CXX)
 
 option(UBLKCPP_BUILD_TESTS "Build tests" OFF)
 option(UBLKCPP_USE_URING_CMD128 "Use IORING_OP_URING_CMD128 for control commands" ON)
+option(UBLKCPP_TESTS_STATIC_LINK "Use static linking for tests" OFF)
 
 include(FetchContent)
 
