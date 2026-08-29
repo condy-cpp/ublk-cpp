@@ -28,5 +28,11 @@ template <typename T, typename Alloc>
 using AllocVector = std::vector<
     T, typename std::allocator_traits<Alloc>::template rebind_alloc<T>>;
 
+template <typename T> inline T align_up(T value, T alignment) noexcept {
+    // alignment must be a power of two
+    assert(alignment > 0 && (alignment & (alignment - 1)) == 0);
+    return (value + alignment - 1) & ~(alignment - 1);
+}
+
 } // namespace detail
 } // namespace ublk
