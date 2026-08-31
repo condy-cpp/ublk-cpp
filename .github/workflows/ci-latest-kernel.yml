@@ -1,0 +1,123 @@
+name: CI (Latest Kernel)
+
+on:
+  push:
+    branches: [ "master" ]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+  pull_request:
+    branches: [ "master" ]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+
+env:
+  KERNEL_ARCHIVE_URL: "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.2.tar.xz"
+
+jobs:
+  build-kernel:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Hash Kernel Archive URL
+        id: kernel-url-hash
+        run: |
+          echo "value=$(printf '%s' \"$KERNEL_ARCHIVE_URL\" | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Kernel bzImage
+        id: cache-kernel
+        uses: actions/cache@v4
+        with:
+          path: .cache/bzImage
+          key: bzImage-${{ steps.kernel-url-hash.outputs.value }}-${{ hashFiles('scripts/light-kernel.sh') }}-${{ runner.os }}
+
+      - name: Build Linux Kernel
+        if: steps.cache-kernel.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libncurses-dev \
+            bison \
+            flex \
+            libssl-dev \
+            libelf-dev \
+            bc \
+            kmod \
+            cpio \
+            rsync \
+            wget
+
+          mkdir -p .cache
+          bash ./scripts/light-kernel.sh -o .cache/bzImage "$KERNEL_ARCHIVE_URL"
+
+      - name: Upload Kernel bzImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: bzImage
+          path: .cache/bzImage
+          if-no-files-found: error
+
+  build-and-test:
+    runs-on: ubuntu-26.04
+    needs: build-kernel
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [ privileged, unprivileged ]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive # condy's vm-run.sh / light-initrd.sh
+
+      - name: Download Kernel bzImage
+        uses: actions/download-artifact@v4
+        with:
+          name: bzImage
+          path: .cache
+
+      - name: Update Apt Packages
+        run: sudo apt-get update
+
+      - name: Setup QEMU
+        run: |
+          sudo apt-get install -y qemu-system-x86
+          qemu-system-x86_64 --version # Verify installation
+
+      - name: Configure CMake
+        run: |
+          cmake -B ${{github.workspace}}/build \
+              -DUBLKCPP_BUILD_TESTS=ON \
+              -DUBLKCPP_BUILD_UBLKCTL=ON \
+              -DUBLKCPP_TESTS_STATIC_LINK=ON \
+              -DCMAKE_C_COMPILER=clang \
+              -DCMAKE_CXX_COMPILER=clang++ \
+              -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build -j$(nproc)
+
+      - name: Run Tests on QEMU
+        timeout-minutes: 15
+        run: |
+          bash ./scripts/vm-run.sh \
+            -m ${{ matrix.mode }} \
+            -c './tests' \
+            ./.cache/bzImage ./build/tests/tests \
+            2>&1 | tee vm-run.log
+
+          if grep -q "SUCCESS!" vm-run.log; then
+            echo "::notice:: All tests passed"
+          else
+            echo "::error:: Tests failed"
+            exit 1
+          fi

@@ -1,0 +1,15 @@
+---
+Checks: >
+  clang-diagnostic-*,
+  clang-analyzer-*,
+  -clang-analyzer-core.StackAddressEscape,
+  -clang-analyzer-core.uninitialized.UndefReturn,
+  -clang-analyzer-security.ArrayBound,
+  performance-*,
+  bugprone-*,
+  -bugprone-signed-bitwise,
+  -bugprone-easily-swappable-parameters,
+WarningsAsErrors: "*"
+HeaderFilterRegex: 'include/ublk/.*\.hpp$'
+FormatStyle: "file"
+CheckOptions: []

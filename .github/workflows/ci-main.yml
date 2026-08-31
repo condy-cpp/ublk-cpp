@@ -1,0 +1,69 @@
+name: CI (Main)
+
+on:
+  push:
+    branches: [ "master" ]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+  pull_request:
+    branches: [ "master" ]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - { cc: clang, cxx: clang++ }
+          - { cc: gcc, cxx: g++ }
+        sanitizer: [ tsan, asan ]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive # condy lives in third_party/condy
+
+      - name: Load ublk Driver
+        run: |
+          sudo modprobe ublk_drv 2>/dev/null || true
+          if [ ! -e /dev/ublk-control ]; then
+            echo "::error:: /dev/ublk-control is not available on this runner"
+            exit 1
+          fi
+
+      - name: Configure CMake
+        run: |
+          COMPILER=$(${{matrix.compiler.cc}} --version | head -n 1)
+          echo "Using compiler: $COMPILER"
+          SANITIZER_FLAG=""
+          if [ "${{ matrix.sanitizer }}" = "tsan" ]; then
+            SANITIZER_FLAG="-DUBLKCPP_TESTS_TSAN=ON"
+          elif [ "${{ matrix.sanitizer }}" = "asan" ]; then
+            SANITIZER_FLAG="-DUBLKCPP_TESTS_ASAN=ON"
+          fi
+          cmake -B ${{github.workspace}}/build \
+              -G Ninja \
+              -DUBLKCPP_BUILD_TESTS=ON \
+              -DUBLKCPP_BUILD_UBLKCTL=ON \
+              -DUBLKCPP_BUILD_EXAMPLES=ON \
+              -DUBLKCPP_EXECUTION_BACKEND=stdexec \
+              $SANITIZER_FLAG \
+              -DCMAKE_C_COMPILER=${{matrix.compiler.cc}} \
+              -DCMAKE_CXX_COMPILER=${{matrix.compiler.cxx}} \
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build -j$(nproc)
+
+      - name: Run Tests
+        timeout-minutes: 15
+        working-directory: ${{github.workspace}}/build
+        run: sudo ./tests/tests
