@@ -1,0 +1,51 @@
+name: CI (Static Check)
+
+on:
+  push:
+    branches: [ "master" ]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+  pull_request:
+    branches: [ "master" ]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+
+jobs:
+  formatting:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 2
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Formatting Check
+        run: bash ./scripts/format-all.sh
+
+  static-analysis:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive # needed to configure condy
+
+      - name: Configure CMake
+        run: |
+          cmake -B ${{github.workspace}}/build \
+              -DUBLKCPP_BUILD_TESTS=ON \
+              -DUBLKCPP_BUILD_UBLKCTL=ON \
+              -DCMAKE_C_COMPILER=clang \
+              -DCMAKE_CXX_COMPILER=clang++ \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: Build liburing
+        run: cmake --build ${{github.workspace}}/build --target liburing_ext
+
+      - name: Static Analysis
+        run: bash ./scripts/check-all.sh

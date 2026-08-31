@@ -7,6 +7,7 @@ option(UBLKCPP_BUILD_UBLKCTL "Build ublkctl" OFF)
 option(UBLKCPP_BUILD_EXAMPLES "Build examples" OFF)
 option(UBLKCPP_USE_URING_CMD128 "Use IORING_OP_URING_CMD128 for control commands" ON)
 option(UBLKCPP_TESTS_STATIC_LINK "Use static linking for tests" OFF)
+option(UBLKCPP_TESTS_ASAN "Enable address and undefined behavior sanitizers for tests" OFF)
 
 include(FetchContent)
 
