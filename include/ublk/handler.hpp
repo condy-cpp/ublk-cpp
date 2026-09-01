@@ -44,4 +44,12 @@ concept QueueHandler = requires(T &t, uint16_t q_id) {
     { t.destroy_queue(q_id) } noexcept -> std::same_as<void>;
 };
 
+/** @brief Concept of a handler notified of shared memory buffer registration.
+ */
+template <typename T>
+concept ShmHandler = requires(T &t, int32_t index, void *base, size_t size) {
+    { t.handle_reg_shm(index, base, size) } noexcept -> detail::ex::sender;
+    { t.handle_unreg_shm(index) } noexcept -> std::same_as<void>;
+};
+
 } // namespace ublk
