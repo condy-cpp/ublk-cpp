@@ -4,6 +4,7 @@ project(ublkcpp LANGUAGES CXX)
 
 option(UBLKCPP_BUILD_TESTS "Build tests" OFF)
 option(UBLKCPP_BUILD_UBLKCTL "Build ublkctl" OFF)
+option(UBLKCPP_BUILD_EXAMPLES "Build examples" OFF)
 option(UBLKCPP_USE_URING_CMD128 "Use IORING_OP_URING_CMD128 for control commands" ON)
 option(UBLKCPP_TESTS_STATIC_LINK "Use static linking for tests" OFF)
 
@@ -43,4 +44,9 @@ endif()
 if(UBLKCPP_BUILD_UBLKCTL)
     message(STATUS "Configuring ublkctl in ${CMAKE_CURRENT_SOURCE_DIR}/bin")
     add_subdirectory(bin)
+endif()
+
+if(UBLKCPP_BUILD_EXAMPLES)
+    message(STATUS "Configuring examples in ${CMAKE_CURRENT_SOURCE_DIR}/examples")
+    add_subdirectory(examples)
 endif()
