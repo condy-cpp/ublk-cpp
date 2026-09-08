@@ -5,12 +5,11 @@
 
 #pragma once
 
-// TODO
 /** @brief ublk-cpp major version. */
 #define UBLKCPP_VERSION_MAJOR 0
 
 /** @brief ublk-cpp minor version. */
-#define UBLKCPP_VERSION_MINOR 0
+#define UBLKCPP_VERSION_MINOR 1
 
 namespace ublk {
 
