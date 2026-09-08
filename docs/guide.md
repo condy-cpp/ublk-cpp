@@ -231,7 +231,7 @@ ex::sync_wait(ex::starts_on(sched, s));
 
 ### Unprivileged Mode
 
-The control commands provided by ublk-cpp support unprivileged mode natively, and this is transparent to upper-layer users. You only need one set of code to deal with both modes. (Of course, you may still need udev configuration logic similar to what [ublksrv describes](https://github.com/ublk-org/ublksrv#unprivileged-mode), and use sleep and retry to handle the race conditions caused by permission changes. But there is only so much ublk-cpp can do.)
+The control commands provided by ublk-cpp support unprivileged mode natively, and this is transparent to upper-layer users. You only need one set of code to deal with both modes. (Of course, you may still need udev configuration logic similar to what [ublksrv describes](https://github.com/ublk-org/ublksrv#unprivileged-mode).)
 
 ### Raw APIs
 
