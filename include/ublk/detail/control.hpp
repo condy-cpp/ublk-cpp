@@ -6,9 +6,12 @@
 #pragma once
 
 #include "ublk/detail/path.hpp"
+#include "ublk/detail/retry.hpp"
 #include "ublk/detail/task.hpp"
 #include "ublk/raw.hpp"
+#include <cerrno>
 #include <condy.hpp>
+#include <system_error>
 
 namespace ublk {
 namespace detail {
@@ -20,19 +23,33 @@ struct control_get_dev_info_t {
     ex::task<void, TaskEnv<Sched, Alloc>> invoke(int fd, uint32_t dev_id,
                                                  ublksrv_ctrl_dev_info *info) {
         DevPathBuf<ublksrv_ctrl_dev_info> buf(dev_id);
-        auto s =
-            raw::get_dev_info2(fd, dev_id, &buf, sizeof(buf), DEV_PATH_LEN) |
-            ex::then([&](int32_t r) noexcept {
-                *info = buf.payload;
-                return r;
-            }) |
-            ex::let_error([&](std::error_code ec) {
-                if (ec.value() != EOPNOTSUPP) {
-                    throw std::system_error(ec, "get_dev_info2");
+        bool ok = co_await retry<Sched, Alloc>(
+            [&]() -> ex::task<bool, TaskEnv<Sched, Alloc>> {
+                int32_t r =
+                    co_await (raw::get_dev_info2(fd, dev_id, &buf, sizeof(buf),
+                                                 DEV_PATH_LEN) |
+                              ex::upon_error([](std::error_code ec) noexcept {
+                                  return -ec.value();
+                              }));
+                if (r >= 0) {
+                    *info = buf.payload;
+                    co_return true;
                 }
-                return raw::get_dev_info(fd, dev_id, info);
-            });
-        co_await std::move(s);
+                if (r == -EACCES) {
+                    co_return false;
+                }
+                if (r == -EOPNOTSUPP) {
+                    co_await raw::get_dev_info(fd, dev_id, info);
+                    co_return true;
+                }
+                throw std::system_error(-r, std::generic_category(),
+                                        "get_dev_info2");
+            },
+            20, 100);
+        if (!ok) {
+            throw std::system_error(EACCES, std::generic_category(),
+                                    "get_dev_info2");
+        }
     }
 };
 
