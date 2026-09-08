@@ -33,9 +33,6 @@ TEST_CASE("test control") {
                       unprivileged ? UBLK_F_UNPRIVILEGED_DEV : 0);
         ex::sync_wait(ex::starts_on(sched, ublk::add_dev(control_fd, &info)));
         REQUIRE(info.dev_id == dev_id);
-        if (unprivileged) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
         ex::sync_wait(
             ex::starts_on(sched, ublk::del_dev(control_fd, info.dev_id)));
     }
@@ -61,10 +58,6 @@ TEST_CASE("test control") {
                            ex::upon_error(
                                [](const std::exception_ptr &) noexcept {})));
         });
-
-        if (unprivileged) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
 
         SUBCASE("del_dev_async") {
             // TODO: Kernel bug

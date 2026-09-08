@@ -47,9 +47,6 @@ TEST_CASE("test daemon") {
     auto d2 = ublk::detail::defer([&]() noexcept {
         ex::sync_wait(ex::starts_on(sched, ublk::del_dev(control_fd, dev_id)));
     });
-    if (unprivileged) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
 
     std::tie(applyed) =
         // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
