@@ -121,7 +121,7 @@ struct daemon_run_t {
         }
         auto options = runtime_options
                            ? runtime_options->build(info.queue_depth)
-                           : condy::RuntimeOptions();
+                           : RuntimeOptions().build(info.queue_depth);
 
         AllocVector<std::unique_ptr<IoLoop>, decltype(alloc)> loops(alloc);
         loops.reserve(info.nr_hw_queues);
