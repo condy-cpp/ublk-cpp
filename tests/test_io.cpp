@@ -80,10 +80,6 @@ TEST_CASE("test io") {
                 ex::sync_wait(
                     ex::starts_on(sched, ublk::del_dev(control_fd, dev_id)));
             });
-            if (unprivileged) {
-                // Wait for udev to chown /dev/ublkcN.
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            }
 
             ublk_params params = {};
             fill_params(params);
@@ -236,9 +232,6 @@ TEST_CASE("test io") {
                         ex::upon_error(
                             [](const std::exception_ptr &) noexcept {})));
             });
-            if (unprivileged) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            }
 
             ublk_params params = {};
             fill_params(params);

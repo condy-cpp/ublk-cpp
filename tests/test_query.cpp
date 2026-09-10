@@ -74,9 +74,6 @@ TEST_CASE("test query - cached_get_dev_info cache miss") {
     auto d2 = ublk::detail::defer([&]() noexcept {
         ex::sync_wait(ex::starts_on(sched, ublk::del_dev(control_fd, dev_id)));
     });
-    if (unprivileged) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
 
     // No cached info in the env -> miss -> fetch via syscall.
     ublksrv_ctrl_dev_info out{};
