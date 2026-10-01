@@ -7,6 +7,7 @@
 #pragma once
 
 #include "ublk/detail/control.hpp"
+#include "ublk/detail/execution.hpp"
 #include "ublk/detail/task.hpp"
 #include "ublk/handler.hpp"
 #include <condy.hpp>
@@ -18,8 +19,6 @@
 
 namespace ublk {
 namespace detail {
-
-namespace ex = condy::detail::ex;
 
 template <typename Sched, typename Alloc, typename Session>
 inline ex::task<void, TaskEnv<Sched, Alloc>>

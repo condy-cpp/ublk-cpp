@@ -8,7 +8,7 @@
 #include <thread>
 #include <ublk.hpp>
 
-namespace ex = condy::detail::ex;
+namespace ex = ublk::detail::ex;
 
 TEST_CASE("test daemon") {
     ublk::detail::IoLoop loop(condy::RuntimeOptions().enable_sqe128(), 0, 0,

@@ -20,7 +20,7 @@
 #include <ublk.hpp>
 #include <unistd.h>
 
-namespace ex = condy::detail::ex;
+namespace ex = ublk::detail::ex;
 
 void prep_dev_info(ublksrv_ctrl_dev_info &info, uint32_t dev_id,
                    uint64_t flags) noexcept {

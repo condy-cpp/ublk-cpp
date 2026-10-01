@@ -26,7 +26,7 @@
 #include <ublk.hpp>
 #include <unistd.h>
 
-namespace ex = condy::detail::ex;
+namespace ex = ublk::detail::ex;
 
 namespace {
 

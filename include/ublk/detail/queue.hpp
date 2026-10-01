@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "ublk/detail/execution.hpp"
 #include "ublk/detail/task.hpp"
 #include "ublk/detail/utils.hpp"
 #include "ublk/handler.hpp"
@@ -23,8 +24,6 @@
 
 namespace ublk {
 namespace detail {
-
-namespace ex = condy::detail::ex;
 
 inline bool need_alloc_buf(uint64_t flags) noexcept {
     return !(flags & (UBLK_F_SUPPORT_ZERO_COPY | UBLK_F_USER_COPY));

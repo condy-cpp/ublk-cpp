@@ -5,14 +5,13 @@
 
 #pragma once
 
+#include "ublk/detail/execution.hpp"
 #include "ublk/query.hpp"
 #include "ublk/ublk_cmd.h"
 #include <condy.hpp>
 
 namespace ublk {
 namespace detail {
-
-namespace ex = condy::detail::ex;
 
 template <typename Sched, typename Alloc> struct TaskEnv {
     using start_scheduler_type = Sched;

@@ -8,7 +8,7 @@
 #include <ublk.hpp>
 #include <unistd.h>
 
-namespace ex = condy::detail::ex;
+namespace ex = ublk::detail::ex;
 
 TEST_CASE("test query - fetch_dev_info defaults to nullptr") {
     ex::env empty{};

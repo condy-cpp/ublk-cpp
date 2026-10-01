@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "ublk/detail/execution.hpp"
 #include "ublk/detail/queue.hpp"
 #include "ublk/detail/task.hpp"
 #include "ublk/handler.hpp"
@@ -15,8 +16,6 @@
 
 namespace ublk {
 namespace detail {
-
-namespace ex = condy::detail::ex;
 
 struct io_run_dev_t {
     template <typename Sched, typename Alloc, IoHandler Handler>

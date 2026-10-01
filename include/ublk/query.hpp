@@ -5,15 +5,12 @@
 
 #pragma once
 
+#include "ublk/detail/execution.hpp"
 #include "ublk/ublk_cmd.h"
 #include <condy.hpp>
 #include <utility>
 
 namespace ublk {
-
-namespace detail {
-namespace ex = condy::detail::ex;
-}
 
 /**
  * @brief Environment query for the cached ublk device info. Returns nullptr if

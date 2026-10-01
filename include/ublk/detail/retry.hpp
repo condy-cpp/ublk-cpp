@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ublk/detail/execution.hpp"
 #include "ublk/detail/task.hpp"
 #include <condy.hpp>
 #include <cstddef>
@@ -8,8 +9,6 @@
 
 namespace ublk {
 namespace detail {
-
-namespace ex = condy::detail::ex;
 
 template <typename Sched, typename Alloc, typename Fn>
 inline ex::task<bool, TaskEnv<Sched, Alloc>> retry(Fn fn, size_t max_retry,

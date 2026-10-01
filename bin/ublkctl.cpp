@@ -20,7 +20,7 @@
 #include <utility>
 #include <variant>
 
-namespace ex = condy::detail::ex;
+namespace ex = ublk::detail::ex;
 
 struct AddCmd {
     uint32_t dev_id = -1;
