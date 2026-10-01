@@ -54,7 +54,7 @@ jobs:
               -DUBLKCPP_BUILD_TESTS=ON \
               -DUBLKCPP_BUILD_UBLKCTL=ON \
               -DUBLKCPP_BUILD_EXAMPLES=ON \
-              -DUBLKCPP_EXECUTION_BACKEND=stdexec \
+              -DCONDY_LINK_STDEXEC=ON \
               $SANITIZER_FLAG \
               -DCMAKE_C_COMPILER=${{matrix.compiler.cc}} \
               -DCMAKE_CXX_COMPILER=${{matrix.compiler.cxx}} \

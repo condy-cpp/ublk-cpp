@@ -7,6 +7,10 @@
 
 #include <condy.hpp>
 
+#ifndef CONDY_DETAIL_HAS_EXECUTION
+#error "ublk-cpp requires a condy backend for std::execution"
+#endif
+
 namespace ublk {
 namespace detail {
 

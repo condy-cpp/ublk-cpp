@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        backend: [ "stdexec", "beman" ]
+        backend: [ STDEXEC, BEMAN ]
         compiler:
           - { cc: gcc, cxx: g++ }
           - { cc: clang, cxx: clang++ }
@@ -49,7 +49,7 @@ jobs:
               -DUBLKCPP_BUILD_TESTS=ON \
               -DUBLKCPP_BUILD_UBLKCTL=ON \
               -DUBLKCPP_BUILD_EXAMPLES=ON \
-              -DUBLKCPP_EXECUTION_BACKEND=${{ matrix.backend }} \
+              -DCONDY_LINK_${{ matrix.backend }}=ON \
               -DCMAKE_C_COMPILER=${{matrix.compiler.cc}} \
               -DCMAKE_CXX_COMPILER=${{matrix.compiler.cxx}} \
               -DCMAKE_BUILD_TYPE=Debug
