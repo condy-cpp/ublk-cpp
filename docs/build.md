@@ -55,8 +55,6 @@ ublk-cpp provides CMake options to build tests, the `ublkctl` tool, examples, an
 | `UBLKCPP_BUILD_EXAMPLES` | Build examples | OFF |
 | `UBLKCPP_BUILD_DOCS` | Build Doxygen documentation | OFF |
 | `UBLKCPP_USE_URING_CMD128` | Use `IORING_OP_URING_CMD128` for control commands | ON |
-| `UBLKCPP_TESTS_STATIC_LINK` | Use static linking for tests | OFF |
-| `UBLKCPP_TESTS_ASAN` | Enable ASan/UBSan for tests | OFF |
 
 ```bash
 cmake -B build -S . \

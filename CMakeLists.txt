@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.24)
 
 # Version is defined once in the version header.
 set(UBLKCPP_VERSION_HEADER include/ublk/version.hpp)
