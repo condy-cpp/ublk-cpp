@@ -11,9 +11,10 @@
 #include <cstdlib>
 #include <fcntl.h>
 #include <filesystem>
+#include <format>
 #include <iostream>
-#include <print>
 #include <sched.h>
+#include <stdexcept>
 #include <string>
 #include <ublk.hpp>
 #include <unistd.h>
@@ -127,18 +128,20 @@ std::string flags_str(uint64_t flags) noexcept {
 
 void dump_dev_info(uint32_t dev_id, const ublksrv_ctrl_dev_info &info,
                    const ublk_params &params) {
-    std::println("dev id {}: nr_hw_queues {} queue_depth {} block size {} "
-                 "dev_capacity {}",
-                 dev_id, info.nr_hw_queues, info.queue_depth,
-                 1U << params.basic.logical_bs_shift, params.basic.dev_sectors);
-    std::println("\tmax rq size {} daemon pid {} state {}",
-                 info.max_io_buf_bytes, info.ublksrv_pid,
-                 state_str(info.state));
-    std::println("\tflags 0x{:x} [{}]", info.flags, flags_str(info.flags));
-    std::println("\tublkc: {}:{} ublkb: {}:{} owner: {}:{}",
-                 params.devt.char_major, params.devt.char_minor,
-                 params.devt.disk_major, params.devt.disk_minor, info.owner_uid,
-                 info.owner_gid);
+    std::cout << std::format("dev id {}: nr_hw_queues {} queue_depth {} block "
+                             "size {} dev_capacity {}\n",
+                             dev_id, info.nr_hw_queues, info.queue_depth,
+                             1U << params.basic.logical_bs_shift,
+                             params.basic.dev_sectors);
+    std::cout << std::format("\tmax rq size {} daemon pid {} state {}\n",
+                             info.max_io_buf_bytes, info.ublksrv_pid,
+                             state_str(info.state));
+    std::cout << std::format("\tflags 0x{:x} [{}]\n", info.flags,
+                             flags_str(info.flags));
+    std::cout << std::format("\tublkc: {}:{} ublkb: {}:{} owner: {}:{}\n",
+                             params.devt.char_major, params.devt.char_minor,
+                             params.devt.disk_major, params.devt.disk_minor,
+                             info.owner_uid, info.owner_gid);
 }
 
 std::string cpu_str(const cpu_set_t &cpuset) noexcept {
@@ -171,7 +174,8 @@ ex::task<void> dump_queue_affinity(int ctrl_fd,
     for (uint16_t q_id = 0; q_id < info.nr_hw_queues; q_id++) {
         cpu_set_t cpuset;
         co_await ublk::get_queue_affinity(ctrl_fd, info.dev_id, q_id, &cpuset);
-        std::println("\tqueue {}: affinity({})", q_id, cpu_str(cpuset));
+        std::cout << std::format("\tqueue {}: affinity({})\n", q_id,
+                                 cpu_str(cpuset));
     }
 }
 
@@ -253,10 +257,11 @@ ex::task<void> run_cmd(int ctrl_fd, const FeaturesCmd &) {
     uint64_t features = 0;
     co_await ublk::get_features(ctrl_fd, &features);
 
-    std::println("ublk_drv features: 0x{:x}", features);
+    std::cout << std::format("ublk_drv features: 0x{:x}\n", features);
     for (const auto &e : FLAG_TABLE) {
         if (features & e.flag)
-            std::println("\t{:<20s}: 0x{:x}", e.short_name, e.flag);
+            std::cout << std::format("\t{:<20s}: 0x{:x}\n", e.short_name,
+                                     e.flag);
     }
 }
 
@@ -367,7 +372,7 @@ Cmd parse_args(int argc, char *argv[]) {
     } else if (app.got_subcommand("quiesce")) {
         return quiesce_opts;
     } else {
-        std::unreachable();
+        throw std::runtime_error("unhandled subcommand");
     }
 }
 
@@ -391,10 +396,10 @@ int main(int argc, char *argv[]) noexcept(false) {
             std::visit([&](const auto &c) { return run_cmd(ctrl_fd, c); },
                        cmd)));
     } catch (const std::system_error &e) {
-        std::println(std::cerr, "ublkctl: {}", e.what());
+        std::cerr << std::format("ublkctl: {}\n", e.what());
         return e.code().value();
     } catch (const std::exception &e) {
-        std::println(std::cerr, "ublkctl: {}", e.what());
+        std::cerr << std::format("ublkctl: {}\n", e.what());
         return 1;
     }
     return 0;

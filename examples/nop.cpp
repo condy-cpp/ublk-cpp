@@ -11,9 +11,9 @@
 #include <cstdint>
 #include <exception>
 #include <fcntl.h>
+#include <format>
 #include <getopt.h>
 #include <iostream>
-#include <print>
 #include <sys/signalfd.h>
 #include <system_error>
 #include <thread>
@@ -46,26 +46,27 @@ void prep_params(ublk_params &params,
 }
 
 void print_usage(const char *prog) {
-    std::println("Usage: {} -n <dev_id>", prog);
-    std::println("Run a no-op ublk block device.");
-    std::println();
-    std::println("Options:");
-    std::println("  -n <dev_id>  ublk device id to use");
-    std::println("  -h           show this help and exit");
+    std::cout << std::format("Usage: {} -n <dev_id>\n", prog);
+    std::cout << "Run a no-op ublk block device.\n";
+    std::cout << '\n';
+    std::cout << "Options:\n";
+    std::cout << "  -n <dev_id>  ublk device id to use\n";
+    std::cout << "  -h           show this help and exit\n";
 }
 
 ex::task<void> wait_signal(int ctrl_fd, int signal_fd, uint32_t dev_id,
                            ex::inplace_stop_source &source) {
-    std::println("ublk-nop: ublk device {} is running...", dev_id);
+    std::cout << std::format("ublk-nop: ublk device {} is running...\n",
+                             dev_id);
     auto parent_token = co_await ex::read_env(ex::get_stop_token);
-    auto stop_request = [&] noexcept { source.request_stop(); };
+    auto stop_request = [&]() noexcept { source.request_stop(); };
     ex::inplace_stop_callback<decltype(stop_request)> cb{
         parent_token, std::move(stop_request)};
     signalfd_siginfo si;
     co_await (condy::async_read(signal_fd, condy::buffer(&si, sizeof(si)), 0) |
               ex::write_env(ex::prop{ex::get_stop_token, source.get_token()}));
-    std::println("ublk-nop: received signal {}, shutting down...",
-                 si.ssi_signo);
+    std::cout << std::format("ublk-nop: received signal {}, shutting down...\n",
+                             si.ssi_signo);
     co_await ublk::stop_dev(ctrl_fd, dev_id);
 }
 
@@ -96,20 +97,20 @@ int main(int argc, char *argv[]) noexcept(false) {
         if (signal_fd < 0) {
             throw std::system_error(errno, std::generic_category(), "signalfd");
         }
-        auto d = ublk::detail::defer([&] noexcept { close(signal_fd); });
+        auto d = ublk::detail::defer([&]() noexcept { close(signal_fd); });
 
         int ctrl_fd = open("/dev/ublk-control", O_RDWR | O_CLOEXEC);
         if (ctrl_fd < 0) {
             throw std::system_error(errno, std::generic_category(),
                                     "open /dev/ublk-control");
         }
-        auto d2 = ublk::detail::defer([&] noexcept { close(ctrl_fd); });
+        auto d2 = ublk::detail::defer([&]() noexcept { close(ctrl_fd); });
 
         condy::RuntimeOptions options;
         options.enable_sqe128();
         condy::Runtime runtime(options);
         std::jthread loop([&]() { runtime.run(); });
-        auto d3 = ublk::detail::defer([&] noexcept { runtime.allow_exit(); });
+        auto d3 = ublk::detail::defer([&]() noexcept { runtime.allow_exit(); });
         ex::scheduler auto sched = condy::get_scheduler(runtime);
 
         uint64_t features;
@@ -154,10 +155,10 @@ int main(int argc, char *argv[]) noexcept(false) {
 
         ex::sync_wait(ex::starts_on(sched, s));
     } catch (const std::system_error &e) {
-        std::println(std::cerr, "ublk-nop: {}", e.what());
+        std::cerr << std::format("ublk-nop: {}\n", e.what());
         return e.code().value();
     } catch (const std::exception &e) {
-        std::println(std::cerr, "ublk-nop: {}", e.what());
+        std::cerr << std::format("ublk-nop: {}\n", e.what());
         return 1;
     }
 

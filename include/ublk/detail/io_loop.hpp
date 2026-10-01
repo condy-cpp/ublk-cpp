@@ -33,7 +33,7 @@ public:
                                         "buffer_table init");
             }
         }
-        thread_ = std::jthread([this, cpuset] { run_(cpuset); });
+        thread_ = std::jthread([this, cpuset]() { run_(cpuset); });
     }
 
     IoLoop(const IoLoop &) = delete;

@@ -45,7 +45,7 @@ FetchContent_Declare(
 
 add_library(ublkcpp INTERFACE)
 target_include_directories(ublkcpp INTERFACE include)
-target_compile_features(ublkcpp INTERFACE cxx_std_23) # TODO: cxx_std_26
+target_compile_features(ublkcpp INTERFACE cxx_std_20)
 if(UBLKCPP_USE_URING_CMD128)
     target_compile_definitions(ublkcpp INTERFACE UBLKCPP_USE_URING_CMD128)
 endif()

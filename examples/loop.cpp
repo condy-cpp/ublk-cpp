@@ -13,10 +13,10 @@
 #include <cstring>
 #include <exception>
 #include <fcntl.h>
+#include <format>
 #include <getopt.h>
 #include <iostream>
 #include <linux/fs.h>
-#include <print>
 #include <string>
 #include <sys/ioctl.h>
 #include <sys/signalfd.h>
@@ -163,35 +163,36 @@ static_assert(ublk::QueueHandler<LoopHandler>);
 
 ex::task<void> wait_signal(int ctrl_fd, int signal_fd, uint32_t dev_id,
                            ex::inplace_stop_source &source) {
-    std::println("ublk-loop: ublk device {} is running...", dev_id);
+    std::cout << std::format("ublk-loop: ublk device {} is running...\n",
+                             dev_id);
     auto parent_token = co_await ex::read_env(ex::get_stop_token);
-    auto stop_request = [&] noexcept { source.request_stop(); };
+    auto stop_request = [&]() noexcept { source.request_stop(); };
     ex::inplace_stop_callback<decltype(stop_request)> cb{
         parent_token, std::move(stop_request)};
     signalfd_siginfo si;
     co_await (condy::async_read(signal_fd, condy::buffer(&si, sizeof(si)), 0) |
               ex::write_env(ex::prop{ex::get_stop_token, source.get_token()}));
-    std::println("ublk-loop: received signal {}, shutting down...",
-                 si.ssi_signo);
+    std::cout << std::format(
+        "ublk-loop: received signal {}, shutting down...\n", si.ssi_signo);
     co_await ublk::stop_dev(ctrl_fd, dev_id);
 }
 
 void print_usage(const char *prog) {
-    std::println("Usage: {} [OPTIONS] -f <backing_file>", prog);
-    std::println(
-        "Run a ublk loop device backed by a regular file or block device.");
-    std::println();
-    std::println("Options:");
-    std::println("  -f <file>     backing file or block device (required)");
-    std::println(
-        "  -n <dev_id>   ublk device id, -1: auto-allocation (default)");
-    std::println("  -q <queues>   nr_hw_queues (default: 1)");
-    std::println(
-        "  -d <depth>    queue depth, max in-flight io commands (default: 64)");
-    std::println("  -b <bytes>    io buffer size (default: 524288)");
-    std::println(
-        "  -p            enable UBLK_F_UNPRIVILEGED_DEV (unprivileged mode)");
-    std::println("  -h            show this help and exit");
+    std::cout << std::format("Usage: {} [OPTIONS] -f <backing_file>\n", prog);
+    std::cout << "Run a ublk loop device backed by a regular file or block "
+                 "device.\n";
+    std::cout << '\n';
+    std::cout << "Options:\n";
+    std::cout << "  -f <file>     backing file or block device (required)\n";
+    std::cout << "  -n <dev_id>   ublk device id, -1: auto-allocation "
+                 "(default)\n";
+    std::cout << "  -q <queues>   nr_hw_queues (default: 1)\n";
+    std::cout << "  -d <depth>    queue depth, max in-flight io commands "
+                 "(default: 64)\n";
+    std::cout << "  -b <bytes>    io buffer size (default: 524288)\n";
+    std::cout << "  -p            enable UBLK_F_UNPRIVILEGED_DEV "
+                 "(unprivileged mode)\n";
+    std::cout << "  -h            show this help and exit\n";
 }
 
 } // namespace
@@ -245,24 +246,24 @@ int main(int argc, char *argv[]) noexcept(false) {
                                     "open backing file");
         }
         auto d_backing =
-            ublk::detail::defer([&] noexcept { close(backing_fd); });
+            ublk::detail::defer([&]() noexcept { close(backing_fd); });
 
         int flags = fcntl(backing_fd, F_GETFL);
         if (flags >= 0 && fcntl(backing_fd, F_SETFL, flags | O_DIRECT) < 0) {
-            std::println(
-                std::cerr,
-                "ublk-loop: failed to set O_DIRECT on backing file: {}",
+            std::cerr << std::format(
+                "ublk-loop: failed to set O_DIRECT on backing "
+                "file: {}\n",
                 std::strerror(errno));
         }
 
         FileInfo file_info;
         lo_file_size(backing_fd, file_info);
         uint64_t dev_sectors = file_info.size / SECTOR_SIZE;
-        std::println("ublk-loop: backing file {} ({} bytes, {} sectors, "
-                     "logical {}B, physical {}B)",
-                     backing_path, file_info.size, dev_sectors,
-                     1u << file_info.logical_bs_shift,
-                     1u << file_info.physical_bs_shift);
+        std::cout << std::format("ublk-loop: backing file {} ({} bytes, {}"
+                                 " sectors, logical {}B, physical {}B)\n",
+                                 backing_path, file_info.size, dev_sectors,
+                                 1u << file_info.logical_bs_shift,
+                                 1u << file_info.physical_bs_shift);
 
         sigset_t mask;
         sigemptyset(&mask);
@@ -274,20 +275,20 @@ int main(int argc, char *argv[]) noexcept(false) {
         if (signal_fd < 0) {
             throw std::system_error(errno, std::generic_category(), "signalfd");
         }
-        auto d = ublk::detail::defer([&] noexcept { close(signal_fd); });
+        auto d = ublk::detail::defer([&]() noexcept { close(signal_fd); });
 
         int ctrl_fd = open("/dev/ublk-control", O_RDWR | O_CLOEXEC);
         if (ctrl_fd < 0) {
             throw std::system_error(errno, std::generic_category(),
                                     "open /dev/ublk-control");
         }
-        auto d2 = ublk::detail::defer([&] noexcept { close(ctrl_fd); });
+        auto d2 = ublk::detail::defer([&]() noexcept { close(ctrl_fd); });
 
         condy::RuntimeOptions options;
         options.enable_sqe128();
         condy::Runtime runtime(options);
         std::jthread loop([&]() { runtime.run(); });
-        auto d3 = ublk::detail::defer([&] noexcept { runtime.allow_exit(); });
+        auto d3 = ublk::detail::defer([&]() noexcept { runtime.allow_exit(); });
         ex::scheduler auto sched = condy::get_scheduler(runtime);
 
         uint64_t features;
@@ -334,10 +335,10 @@ int main(int argc, char *argv[]) noexcept(false) {
 
         ex::sync_wait(ex::starts_on(sched, s));
     } catch (const std::system_error &e) {
-        std::println(std::cerr, "ublk-loop: {}", e.what());
+        std::cerr << std::format("ublk-loop: {}\n", e.what());
         return e.code().value();
     } catch (const std::exception &e) {
-        std::println(std::cerr, "ublk-loop: {}", e.what());
+        std::cerr << std::format("ublk-loop: {}\n", e.what());
         return 1;
     }
 

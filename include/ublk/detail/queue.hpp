@@ -116,7 +116,7 @@ public:
           queue_depth_(queue_depth), max_io_buf_bytes_(max_io_buf_bytes),
           handler_(handler), alloc_(alloc) {
         bool ok = false;
-        auto d = defer([&] noexcept {
+        auto d = defer([&]() noexcept {
             if (!ok) {
                 cleanup_();
             }
@@ -303,7 +303,7 @@ public:
           queue_depth_(queue_depth), max_io_buf_bytes_(max_io_buf_bytes),
           handler_(handler), alloc_(alloc) {
         bool ok = false;
-        auto d = defer([&] noexcept {
+        auto d = defer([&]() noexcept {
             if (!ok) {
                 cleanup_();
             }
@@ -413,7 +413,7 @@ public:
                 ex::upon_error([&, tag](const std::exception_ptr &ep) noexcept {
                     worker_errs[tag] = ep;
                 }) |
-                ex::then([&] noexcept {
+                ex::then([&]() noexcept {
                     if (--running_workers == 0) {
                         flusher.futex.notify_one();
                     }

@@ -42,7 +42,7 @@ struct io_run_dev_t {
         constexpr int UBLKC_FD = 0;
         auto &fd_table = condy::current_runtime().fd_table();
         auto r = fd_table.update(UBLKC_FD, &ublkc_fd, 1);
-        auto d = defer([&] noexcept {
+        auto d = defer([&]() noexcept {
             if (r >= 0) {
                 int fd = -1;
                 fd_table.update(UBLKC_FD, &fd, 1); // unregister
