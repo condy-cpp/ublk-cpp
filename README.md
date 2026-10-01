@@ -1,6 +1,6 @@
 # ublk-cpp
 
-![C++](https://img.shields.io/badge/C++-26-blue)
+![C++](https://img.shields.io/badge/C++-20-blue)
 ![License](https://img.shields.io/github/license/condy-cpp/ublk-cpp)
 ![Release](https://img.shields.io/github/v/release/condy-cpp/ublk-cpp)
 ![Stars](https://img.shields.io/github/stars/condy-cpp/ublk-cpp?style=social)
@@ -10,7 +10,7 @@
 ![CI (Static Check)](https://github.com/condy-cpp/ublk-cpp/actions/workflows/ci-static-check.yml/badge.svg?branch=master)
 ![Deploy Docs](https://github.com/condy-cpp/ublk-cpp/actions/workflows/deploy-docs.yml/badge.svg?branch=master)
 
-ublk-cpp is a C++ library for writing [ublk servers](https://docs.kernel.org/block/ublk.html), targeting the C++26 `std::execution` sender model:
+ublk-cpp is a C++ library for writing [ublk servers](https://docs.kernel.org/block/ublk.html), built on the `std::execution` sender model:
 
 - **Comprehensive ublk Support**
   Full coverage of the ublk userspace interface — device lifecycle management, per-queue I/O loops, and advanced features such as user recovery and shm buffer registration.
@@ -18,12 +18,8 @@ ublk-cpp is a C++ library for writing [ublk servers](https://docs.kernel.org/blo
 - **Full io_uring Ecosystem**
   Built on top of [Condy](https://github.com/condy-cpp/condy), all io_uring operations can be used directly inside your ublk server.
 
-- **C++26 Sender Model**
+- **Sender Model**
   The API is built on `std::execution` senders — composable with standard algorithms and interoperable with any asynchronous driver.
-
-> [!NOTE]
-> This repository is experimental and will not reach a stable state until
-> `std::execution` (C++26) is finalized.
 
 ## Documentation
 
