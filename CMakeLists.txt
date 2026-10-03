@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.24)
 
 # Version is defined once in the version header.
 set(UBLKCPP_VERSION_HEADER include/ublk/version.hpp)
@@ -20,8 +20,6 @@ option(UBLKCPP_USE_URING_CMD128 "Use IORING_OP_URING_CMD128 for control commands
 option(UBLKCPP_TESTS_STATIC_LINK "Use static linking for tests" OFF)
 option(UBLKCPP_TESTS_ASAN "Enable address and undefined behavior sanitizers for tests" OFF)
 option(UBLKCPP_TESTS_TSAN "Enable thread sanitizer for tests" OFF)
-set(UBLKCPP_EXECUTION_BACKEND "stdexec" CACHE STRING
-    "std::execution implementation used via Condy: stdexec (default) or beman")
 
 include(FetchContent)
 
@@ -47,23 +45,11 @@ FetchContent_Declare(
 
 add_library(ublkcpp INTERFACE)
 target_include_directories(ublkcpp INTERFACE include)
-target_compile_features(ublkcpp INTERFACE cxx_std_23) # TODO: cxx_std_26
+target_compile_features(ublkcpp INTERFACE cxx_std_20)
 if(UBLKCPP_USE_URING_CMD128)
     target_compile_definitions(ublkcpp INTERFACE UBLKCPP_USE_URING_CMD128)
 endif()
 
-if(UBLKCPP_EXECUTION_BACKEND STREQUAL "beman")
-    set(CONDY_ENABLE_STDEXEC OFF)
-    set(CONDY_ENABLE_BEMAN ON)
-elseif(UBLKCPP_EXECUTION_BACKEND STREQUAL "stdexec")
-    set(CONDY_ENABLE_STDEXEC ON)
-    set(CONDY_ENABLE_BEMAN OFF)
-else()
-    message(FATAL_ERROR
-        "UBLKCPP_EXECUTION_BACKEND must be 'stdexec' or 'beman', got '"
-        "${UBLKCPP_EXECUTION_BACKEND}'")
-endif()
-message(STATUS "ublkcpp: execution backend: ${UBLKCPP_EXECUTION_BACKEND}")
 add_subdirectory(third_party/condy)
 target_link_libraries(ublkcpp INTERFACE condy)
 

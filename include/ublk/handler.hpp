@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "ublk/detail/execution.hpp"
 #include "ublk/ublk_cmd.h"
 #include <concepts>
 #include <condy.hpp>
@@ -12,10 +13,6 @@
 #include <cstdint>
 
 namespace ublk {
-
-namespace detail {
-namespace ex = condy::detail::ex;
-}
 
 /**
  * @brief Context of a single I/O request delivered to a handler.

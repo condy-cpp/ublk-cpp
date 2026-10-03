@@ -9,6 +9,7 @@ ublk is a kernel framework for implementing block device drivers in userspace. I
 The runtime is represented by `condy::Runtime`, and a scheduler object can be obtained via `condy::get_scheduler()`. All interfaces provided by ublk-cpp are required to run on that scheduler.
 
 ```cpp
+namespace ex = std::execution; // or stdexec / beman::execution
 // sqe128 is required for ublk control cmd
 condy::Runtime runtime(condy::RuntimeOptions().enable_sqe128());
 std::jthread loop([&]() { runtime.run(); });
@@ -180,15 +181,16 @@ Then run `ublk::daemon::run()` and `ublk::daemon::start()` concurrently. After `
 ```cpp
 ex::task<void> wait_signal(int ctrl_fd, int signal_fd, uint32_t dev_id,
                            ex::inplace_stop_source &source) {
-    std::println("ublk-nop: ublk device {} is running...", dev_id);
+    std::cout << std::format("ublk-nop: ublk device {} is running...\n",
+                             dev_id);
     auto parent_token = co_await ex::read_env(ex::get_stop_token);
     ex::inplace_stop_callback cb{parent_token,
-                                 [&] noexcept { source.request_stop(); }};
+                                 [&]() noexcept { source.request_stop(); }};
     signalfd_siginfo si;
     co_await (condy::async_read(signal_fd, condy::buffer(&si, sizeof(si)), 0) |
               ex::write_env(ex::prop{ex::get_stop_token, source.get_token()}));
-    std::println("ublk-nop: received signal {}, shutting down...",
-                 si.ssi_signo);
+    std::cout << std::format(
+        "ublk-nop: received signal {}, shutting down...\n", si.ssi_signo);
     co_await ublk::stop_dev(ctrl_fd, dev_id);
 }
 // ...

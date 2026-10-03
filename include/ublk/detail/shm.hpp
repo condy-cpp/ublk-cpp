@@ -7,6 +7,7 @@
 #pragma once
 
 #include "ublk/detail/control.hpp"
+#include "ublk/detail/execution.hpp"
 #include "ublk/detail/task.hpp"
 #include "ublk/handler.hpp"
 #include <condy.hpp>
@@ -18,8 +19,6 @@
 
 namespace ublk {
 namespace detail {
-
-namespace ex = condy::detail::ex;
 
 template <typename Sched, typename Alloc, typename Session>
 inline ex::task<void, TaskEnv<Sched, Alloc>>
@@ -108,7 +107,7 @@ template <typename Sched, typename Alloc, typename Session>
 inline ex::task<void, TaskEnv<Sched, Alloc>>
 shm_server_run(std::string_view path, Session session) {
     int server_fd = co_await condy::async_socket(AF_UNIX, SOCK_STREAM, 0, 0);
-    auto d = defer([&] noexcept { close(server_fd); });
+    auto d = defer([&]() noexcept { close(server_fd); });
 
     sockaddr_un addr = {};
     addr.sun_family = AF_UNIX;
@@ -128,7 +127,7 @@ shm_server_run(std::string_view path, Session session) {
 
     co_await condy::async_bind(server_fd, reinterpret_cast<sockaddr *>(&addr),
                                sizeof(addr));
-    auto d2 = defer([&] noexcept { unlink(addr.sun_path); });
+    auto d2 = defer([&]() noexcept { unlink(addr.sun_path); });
     co_await condy::async_listen(server_fd, 128);
 
     ex::counting_scope scope;

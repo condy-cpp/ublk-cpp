@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "ublk/detail/execution.hpp"
 #include "ublk/detail/path.hpp"
 #include "ublk/detail/retry.hpp"
 #include "ublk/detail/task.hpp"
@@ -15,8 +16,6 @@
 
 namespace ublk {
 namespace detail {
-
-namespace ex = condy::detail::ex;
 
 struct control_get_dev_info_t {
     template <typename Sched, typename Alloc>

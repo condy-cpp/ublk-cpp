@@ -39,6 +39,7 @@ jobs:
           cmake -B ${{github.workspace}}/build \
               -DUBLKCPP_BUILD_TESTS=ON \
               -DUBLKCPP_BUILD_UBLKCTL=ON \
+              -DCONDY_LINK_STDEXEC=ON \
               -DCMAKE_C_COMPILER=clang \
               -DCMAKE_CXX_COMPILER=clang++ \
               -DCMAKE_BUILD_TYPE=Debug \

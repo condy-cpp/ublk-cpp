@@ -139,15 +139,15 @@ struct ZeroHandler {
     ZeroHandler(const ZeroHandler &) = delete;
     ZeroHandler &operator=(const ZeroHandler &) = delete;
 
-    condy::detail::ex::task<void> handle_reg_shm(int32_t index, void *base,
-                                                 size_t size) noexcept {
+    ublk::detail::ex::task<void> handle_reg_shm(int32_t index, void *base,
+                                                size_t size) noexcept {
         shm_bufs_[index] = ShmBuf{base, size};
         co_return;
     }
 
     void handle_unreg_shm(int32_t index) noexcept { shm_bufs_.erase(index); }
 
-    condy::detail::ex::task<int32_t>
+    ublk::detail::ex::task<int32_t>
     handle_io(const ublk::IoData &data) noexcept {
         uint64_t start = data.iod->start_sector * 512;
         uint32_t nbytes = data.iod->nr_sectors * 512;

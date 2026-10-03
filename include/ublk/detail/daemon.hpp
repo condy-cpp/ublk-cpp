@@ -7,6 +7,7 @@
 #pragma once
 
 #include "ublk/detail/control.hpp"
+#include "ublk/detail/execution.hpp"
 #include "ublk/detail/io.hpp"
 #include "ublk/detail/io_loop.hpp"
 #include "ublk/detail/shm.hpp"
@@ -19,8 +20,6 @@
 
 namespace ublk {
 namespace detail {
-
-namespace ex = condy::detail::ex;
 
 inline bool need_recovery(const ublksrv_ctrl_dev_info *info) noexcept {
     return info->state == UBLK_S_DEV_QUIESCED ||
@@ -138,7 +137,7 @@ struct daemon_run_t {
 
         std::string path = dev_path(dev_id);
         int ublkc_fd = co_await condy::async_open(path.c_str(), O_RDWR, 0);
-        auto d = defer([&] noexcept { close(ublkc_fd); });
+        auto d = defer([&]() noexcept { close(ublkc_fd); });
 
         ex::simple_counting_scope scope;
         AllocVector<std::exception_ptr, decltype(alloc)> errs(info.nr_hw_queues,

@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "ublk/detail/execution.hpp"
 #include "ublk/detail/task.hpp"
 #include "ublk/detail/utils.hpp"
 #include "ublk/handler.hpp"
@@ -23,8 +24,6 @@
 
 namespace ublk {
 namespace detail {
-
-namespace ex = condy::detail::ex;
 
 inline bool need_alloc_buf(uint64_t flags) noexcept {
     return !(flags & (UBLK_F_SUPPORT_ZERO_COPY | UBLK_F_USER_COPY));
@@ -117,7 +116,7 @@ public:
           queue_depth_(queue_depth), max_io_buf_bytes_(max_io_buf_bytes),
           handler_(handler), alloc_(alloc) {
         bool ok = false;
-        auto d = defer([&] noexcept {
+        auto d = defer([&]() noexcept {
             if (!ok) {
                 cleanup_();
             }
@@ -304,7 +303,7 @@ public:
           queue_depth_(queue_depth), max_io_buf_bytes_(max_io_buf_bytes),
           handler_(handler), alloc_(alloc) {
         bool ok = false;
-        auto d = defer([&] noexcept {
+        auto d = defer([&]() noexcept {
             if (!ok) {
                 cleanup_();
             }
@@ -414,7 +413,7 @@ public:
                 ex::upon_error([&, tag](const std::exception_ptr &ep) noexcept {
                     worker_errs[tag] = ep;
                 }) |
-                ex::then([&] noexcept {
+                ex::then([&]() noexcept {
                     if (--running_workers == 0) {
                         flusher.futex.notify_one();
                     }

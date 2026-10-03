@@ -3,7 +3,7 @@
 @brief How to build and integrate ublk-cpp in your project.
 
 > [!NOTE]
-> ublk-cpp currently depends on condy's **experimental execution integration**, which can be backed by either **stdexec** (default) or **beman/execution**. Once `std::execution` is finalized in C++26, it will migrate to the standard library implementation.
+> ublk-cpp requires condy with `std::execution` support. Condy uses the standard library implementation when available, or a fetched backend ([stdexec](https://github.com/NVIDIA/stdexec) or [beman/execution](https://github.com/bemanproject/execution)) enabled through condy's `CONDY_LINK_STDEXEC` / `CONDY_LINK_BEMAN` options.
 
 ## Using ublk-cpp as a Submodule
 
@@ -42,7 +42,7 @@ target_link_libraries(my_app PRIVATE ublkcpp)
 
 Condy fetches and **statically links liburing** by default (`CONDY_LINK_LIBURING=ON`). To use the liburing installed on your system instead, configure with `CONDY_LINK_LIBURING=OFF`.
 
-ublk-cpp currently also fetches and depends on **[stdexec](https://github.com/NVIDIA/stdexec)**, or **[beman/execution](https://github.com/bemanproject/execution)** when enabled via the `UBLKCPP_EXECUTION_BACKEND` option. Once `std::execution` is finalized in C++26, this dependency is expected to be replaced by the standard library implementation.
+ublk-cpp requires condy with `std::execution` support. When the standard library provides it, condy detects it automatically. Otherwise enable a fetched backend with `CONDY_LINK_STDEXEC=ON` ([stdexec](https://github.com/NVIDIA/stdexec)) or `CONDY_LINK_BEMAN=ON` ([beman/execution](https://github.com/bemanproject/execution)).
 
 ## Building
 
@@ -55,15 +55,13 @@ ublk-cpp provides CMake options to build tests, the `ublkctl` tool, examples, an
 | `UBLKCPP_BUILD_EXAMPLES` | Build examples | OFF |
 | `UBLKCPP_BUILD_DOCS` | Build Doxygen documentation | OFF |
 | `UBLKCPP_USE_URING_CMD128` | Use `IORING_OP_URING_CMD128` for control commands | ON |
-| `UBLKCPP_TESTS_STATIC_LINK` | Use static linking for tests | OFF |
-| `UBLKCPP_TESTS_ASAN` | Enable ASan/UBSan for tests | OFF |
-| `UBLKCPP_EXECUTION_BACKEND` | `std::execution` implementation used via Condy: `stdexec` or `beman` | `stdexec` |
 
 ```bash
 cmake -B build -S . \
     -DUBLKCPP_BUILD_TESTS=ON \
     -DUBLKCPP_BUILD_UBLKCTL=ON \
     -DUBLKCPP_BUILD_EXAMPLES=ON \
+    -DCONDY_LINK_STDEXEC=ON \
     -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j$(nproc)
 ```
