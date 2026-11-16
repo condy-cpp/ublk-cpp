@@ -406,28 +406,25 @@ TEST_CASE("test raw - unprivileged") {
                            ex::upon_error([](std::error_code) noexcept {})));
         });
 
-        // TODO: Kernel bug
-        // https://lore.kernel.org/linux-block/20260901142438.237586-1-yi1tang.yang@gmail.com/
-        // SUBCASE("del_dev_async") {
-        //     // Hold dev reference
-        //     auto ublkc_path = ublk::detail::dev_path(dev_id);
-        //     int ublkc_fd = open(ublkc_path.c_str(), O_RDWR);
-        //     auto d = ublk::detail::defer([&]() noexcept { close(ublkc_fd);
-        //     });
+        SUBCASE("del_dev_async") {
+            // Hold dev reference
+            auto ublkc_path = ublk::detail::dev_path(dev_id);
+            int ublkc_fd = open(ublkc_path.c_str(), O_RDWR);
+            REQUIRE(ublkc_fd >= 0);
+            auto d = ublk::detail::defer([&]() noexcept { close(ublkc_fd); });
 
-        //     try {
-        //         ex::sync_wait(ex::starts_on(
-        //             sched,
-        //             ublk::raw::del_dev_async(control_fd, dev_id, dev_path,
-        //                                      sizeof(dev_path))));
-        //     } catch (const std::system_error &e) {
-        //         if (e.code().value() != EOPNOTSUPP) {
-        //             throw;
-        //         }
-        //         MESSAGE("del_dev_async not supported, skipping");
-        //         return;
-        //     }
-        // }
+            try {
+                ex::sync_wait(ex::starts_on(
+                    sched,
+                    ublk::raw::del_dev_async(control_fd, dev_id, dev_path,
+                                             sizeof(dev_path))));
+            } catch (const std::system_error &e) {
+                if (e.code().value() != EOPNOTSUPP) {
+                    throw;
+                }
+                MESSAGE("del_dev_async not supported, skipping");
+            }
+        }
 
         SUBCASE("get_queue_affinity") {
             ublk::detail::DevPathBuf<cpu_set_t> aff_buf(dev_id);

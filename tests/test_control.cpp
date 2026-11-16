@@ -60,24 +60,20 @@ TEST_CASE("test control") {
         });
 
         SUBCASE("del_dev_async") {
-            // TODO: Kernel bug
-            // https://lore.kernel.org/linux-block/20260901142438.237586-1-yi1tang.yang@gmail.com/
-            if (!unprivileged) {
-                // Hold dev reference
-                auto ublkc_path = ublk::detail::dev_path(dev_id);
-                int ublkc_fd = open(ublkc_path.c_str(), O_RDWR);
-                auto d =
-                    ublk::detail::defer([&]() noexcept { close(ublkc_fd); });
+            // Hold dev reference
+            auto ublkc_path = ublk::detail::dev_path(dev_id);
+            int ublkc_fd = open(ublkc_path.c_str(), O_RDWR);
+            REQUIRE(ublkc_fd >= 0);
+            auto d = ublk::detail::defer([&]() noexcept { close(ublkc_fd); });
 
-                try {
-                    ex::sync_wait(ex::starts_on(
-                        sched, ublk::del_dev_async(control_fd, dev_id)));
-                } catch (const std::system_error &e) {
-                    if (e.code().value() != EOPNOTSUPP) {
-                        throw;
-                    }
-                    MESSAGE("del_dev_async not supported, skipping");
+            try {
+                ex::sync_wait(ex::starts_on(
+                    sched, ublk::del_dev_async(control_fd, dev_id)));
+            } catch (const std::system_error &e) {
+                if (e.code().value() != EOPNOTSUPP) {
+                    throw;
                 }
+                MESSAGE("del_dev_async not supported, skipping");
             }
         }
 
